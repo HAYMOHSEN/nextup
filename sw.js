@@ -1,18 +1,23 @@
 /* Prioritize My Lists service worker: makes the app start and work without a connection.
-   Raise CACHE (v7 -> v8 ...) whenever you upload changed files. */
-const CACHE = 'nextup-v7';
+   Raise CACHE (v8 -> v9 ...) whenever you upload changed files. */
+const CACHE = 'nextup-v8';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './privacy.html',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+  /* Each file is saved on its own, so one missing file cannot stop the app from working offline. */
+  event.waitUntil(
+    caches.open(CACHE)
+      .then((cache) => Promise.all(ASSETS.map((url) => cache.add(url).catch(() => null))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {

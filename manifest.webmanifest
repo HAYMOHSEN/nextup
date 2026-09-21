@@ -17,19 +17,19 @@
   ],
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-maskable-512.png",
+      "src": "icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -43,12 +43,12 @@
       "url": "./?new=1",
       "icons": [
         {
-          "src": "icons/icon-96.png",
+          "src": "icon-96.png",
           "sizes": "96x96",
           "type": "image/png"
         },
         {
-          "src": "icons/icon-192.png",
+          "src": "icon-192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -82,21 +82,21 @@
   },
   "screenshots": [
     {
-      "src": "screenshots/wide-1.png",
+      "src": "screenshot-wide-1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Ranked task list beside the urgent and important matrix"
     },
     {
-      "src": "screenshots/wide-2.png",
+      "src": "screenshot-wide-2.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Adding a task with a live preview of its rank"
     },
     {
-      "src": "screenshots/narrow-1.png",
+      "src": "screenshot-narrow-1.png",
       "sizes": "780x1688",
       "type": "image/png",
       "form_factor": "narrow",
