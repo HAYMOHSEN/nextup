@@ -43,11 +43,64 @@
       "url": "./?new=1",
       "icons": [
         {
+          "src": "icons/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
           "src": "icons/icon-192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
       ]
+    }
+  ],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "handle_links": "preferred",
+  "edge_side_panel": {
+    "preferred_width": 420
+  },
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "screenshots": [
+    {
+      "src": "screenshots/wide-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Ranked task list beside the urgent and important matrix"
+    },
+    {
+      "src": "screenshots/wide-2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Adding a task with a live preview of its rank"
+    },
+    {
+      "src": "screenshots/narrow-1.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "The task to do next, on a phone-sized window"
     }
   ]
 }

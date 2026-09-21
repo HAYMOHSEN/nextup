@@ -1421,9 +1421,22 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
   }
-  if (/[?&]new=1(&|$)/.test(location.search)) {
-    openForm(null, fab);
-    try { history.replaceState(null, '', location.pathname); } catch (e) { /* cosmetic only */ }
+  /* Started from the "New task" jump-list entry (?new=1), or with text shared from another app. */
+  let launch = null;
+  try { launch = new URLSearchParams(location.search); } catch (e) { launch = null; }
+  if (launch) {
+    const shared = [launch.get('title'), launch.get('text'), launch.get('url')]
+      .filter((part) => part && part.trim()).join(' ').replace(/\s+/g, ' ').trim().slice(0, 140);
+    if (launch.get('new') === '1' || shared) {
+      openForm(null, fab);
+      if (shared && ui.draft) {
+        ui.draft.title = shared;
+        const field = $('#f-title', sheet);
+        if (field) field.value = shared;
+        syncForm();
+      }
+      try { history.replaceState(null, '', location.pathname); } catch (e) { /* cosmetic only */ }
+    }
   }
 })();
 </script>
