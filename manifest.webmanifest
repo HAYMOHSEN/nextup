@@ -1,7 +1,7 @@
 {
-  "name": "NextUp",
-  "short_name": "NextUp",
-  "description": "A task list that works out the order for you. Say how important a task is, when it is due and how long it takes, and NextUp puts the one to do next at the top.",
+  "name": "Prioritize My Tasks",
+  "short_name": "Prioritize",
+  "description": "A task list that works out the order for you. Say how important a task is, when it is due and how long it takes, and the app puts the one to do next at the top.",
   "id": "nextup",
   "start_url": "./",
   "scope": "./",

@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F3F4F8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1124" media="(prefers-color-scheme: dark)">
-<title>NextUp</title>
+<title>Prioritize My Tasks</title>
 <meta name="description" content="A task list that works out the order for you.">
 <meta name="robots" content="noindex">
 <link rel="manifest" href="manifest.webmanifest">
@@ -912,7 +912,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
       html = state.tasks.length
         ? '<div class="empty"><h2>Nothing left to do</h2><p>Add a task and it gets ranked for you.</p>' +
           '<button type="button" class="pill-btn" data-action="add">Add a task</button></div>'
-        : '<div class="empty"><h2>Add your first task</h2><p>Say how important it is and when it is due. NextUp works out the order.</p>' +
+        : '<div class="empty"><h2>Add your first task</h2><p>Say how important it is and when it is due. The app works out the order.</p>' +
           '<button type="button" class="pill-btn" data-action="add">Add a task</button></div>';
     } else {
       if (active.length) {
@@ -1186,7 +1186,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
       '<button type="button" class="quiet-btn" data-action="import">Import a backup</button></div>' +
       '<div class="pair"><button type="button" class="quiet-btn" data-action="load-samples">Load sample tasks</button>' +
       '<button type="button" class="quiet-btn" data-action="remove-all">Remove all tasks</button></div>' +
-      '<p class="small about">NextUp 1.0. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>',
+      '<p class="small about">Prioritize My Tasks 1.0. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>',
       opener);
   }
 
@@ -1285,12 +1285,12 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
   /* ---------- Backup ---------- */
   const importInput = $('#import-file');
   function exportBackup() {
-    const body = { app: 'NextUp', v: 1, exportedAt: new Date().toISOString(), tasks: state.tasks };
+    const body = { app: 'Prioritize My Tasks', v: 1, exportedAt: new Date().toISOString(), tasks: state.tasks };
     const blob = new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'NextUp-backup-' + isoInDays(0) + '.json';
+    a.download = 'PrioritizeMyTasks-backup-' + isoInDays(0) + '.json';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1310,7 +1310,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
         const list = Array.isArray(parsed) ? parsed : (parsed && parsed.tasks);
         if (Array.isArray(list)) tasks = list.map(normalize).filter(Boolean);
       } catch (e) { tasks = null; }
-      if (!tasks) { toast('That file is not a NextUp backup'); return; }
+      if (!tasks) { toast('That file is not a Prioritize My Tasks backup'); return; }
       const seen = {};
       tasks = tasks.filter((t) => (seen[t.id] ? false : (seen[t.id] = true)));
       replaceAll(tasks, tasks.length + (tasks.length === 1 ? ' task imported' : ' tasks imported'));

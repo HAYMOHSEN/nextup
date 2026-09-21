@@ -1,6 +1,6 @@
-/* NextUp service worker: makes the app start and work without a connection.
+/* Prioritize My Tasks service worker: makes the app start and work without a connection.
    Raise CACHE (v1 -> v2 ...) whenever you upload a changed index.html. */
-const CACHE = 'nextup-v2';
+const CACHE = 'nextup-v4';
 const ASSETS = [
   './',
   './index.html',
