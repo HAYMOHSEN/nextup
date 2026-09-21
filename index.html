@@ -584,7 +584,11 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
   }
   .grabber { display: none; }
 }
+@media (max-width: 480px) {
+  .view-title { font-size: 31px; }
+}
 @media (max-width: 350px) {
+  .view-title { font-size: 26px; }
   .seg button { font-size: 12.5px; }
   .hero-title { font-size: 29px; }
 }
@@ -599,7 +603,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
   <main class="phone" id="app">
     <header class="top" id="top">
       <div>
-        <h1 class="view-title" id="view-title">Next up</h1>
+        <h1 class="view-title" id="view-title">Prioritize My Lists</h1>
         <p class="summary" id="summary"></p>
       </div>
       <button type="button" class="icon-btn" data-action="info" aria-label="How the order is decided">?</button>
@@ -615,7 +619,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
     <nav class="tabs" id="tabs" aria-label="Views">
       <button type="button" class="tab" data-action="tab" data-value="next" aria-current="page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg>
-        Next
+        Tasks
       </button>
       <button type="button" class="tab" data-action="tab" data-value="matrix">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></svg>
@@ -840,7 +844,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
 
   /* ---------- Rendering ---------- */
   function renderTop() {
-    const titles = { next: 'Next up', matrix: 'Matrix', done: 'Done' };
+    const titles = { next: 'Prioritize My Lists', matrix: 'Matrix', done: 'Done' };
     titleEl.textContent = titles[ui.tab];
     let text = '';
     if (ui.tab === 'next') {

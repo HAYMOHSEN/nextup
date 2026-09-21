@@ -1,6 +1,6 @@
 /* Prioritize My Lists service worker: makes the app start and work without a connection.
-   Raise CACHE (v1 -> v2 ...) whenever you upload a changed index.html. */
-const CACHE = 'nextup-v5';
+   Raise CACHE (v6 -> v7 ...) whenever you upload changed files. */
+const CACHE = 'nextup-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -23,20 +23,35 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-/* Serve from the cache first, then refresh the cached copy in the background. */
+function remember(request, response) {
+  if (response && response.ok) {
+    const copy = response.clone();
+    caches.open(CACHE).then((cache) => cache.put(request, copy));
+  }
+  return response;
+}
+
+/* Pages: ask the website first, so an update shows straight away.
+   Without a connection (or after 3.5 s of waiting) the saved copy is used. */
+async function pageFirstFromNetwork(request) {
+  const saved = (await caches.match(request, { ignoreSearch: true })) || (await caches.match('./index.html'));
+  const fresh = fetch(request.url, { cache: 'no-cache' }).then((response) => remember(request, response));
+  if (!saved) return fresh;
+  const patience = new Promise((resolve) => setTimeout(() => resolve(saved), 3500));
+  return Promise.race([fresh.catch(() => saved), patience]);
+}
+
+/* Icons and other files: saved copy first, refreshed in the background. */
+function savedFirst(request) {
+  return caches.match(request, { ignoreSearch: true }).then((saved) => {
+    const fresh = fetch(request).then((response) => remember(request, response)).catch(() => saved);
+    return saved || fresh;
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  event.respondWith(
-    caches.match(request, { ignoreSearch: true }).then((cached) => {
-      const fresh = fetch(request).then((response) => {
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      }).catch(() => cached);
-      return cached || fresh;
-    })
-  );
+  const isPage = request.mode === 'navigate' || request.destination === 'document';
+  event.respondWith(isPage ? pageFirstFromNetwork(request) : savedFirst(request));
 });
