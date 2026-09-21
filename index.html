@@ -101,7 +101,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 [hidden] { display: none !important; }
-button { font-family: inherit; }
+button { font-family: inherit; -webkit-user-select: none; user-select: none; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .vh {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
@@ -564,11 +564,12 @@ button { font-family: inherit; }
   .view { position: relative; inset: auto; height: 100%; min-height: 0; padding: 6px 20px 40px 32px; }
   .views[data-tab="next"] > #view-next, .views[data-tab="next"] > #view-matrix,
   .views[data-tab="matrix"] > #view-next, .views[data-tab="matrix"] > #view-matrix { display: block; }
-  .views > #view-matrix { padding: 0 32px 32px 12px; }
+  .views > #view-matrix { padding: 0 32px 28px 12px; }
+  .views[data-tab="next"] > #view-matrix, .views[data-tab="matrix"] > #view-matrix { display: flex; flex-direction: column; }
   .views > #view-done { grid-column: 1 / -1; }
   #view-done > * { max-width: 720px; }
-  .matrix-note { display: block; margin: 8px 0 12px 26px; font-size: 14px; color: var(--ink-2); }
-  .matrix { min-height: calc(100% - 44px); }
+  .matrix-note { display: block; flex: none; margin: 8px 0 12px 26px; font-size: 14px; color: var(--ink-2); }
+  .matrix { flex: 1 1 auto; min-height: 300px; grid-template-rows: auto minmax(120px, 1fr) minmax(120px, 1fr); }
   .quad h2 { font-size: 17px; }
   .quad-item { font-size: 14.5px; }
   .quad-item:hover { text-decoration: underline; text-underline-offset: 3px; }

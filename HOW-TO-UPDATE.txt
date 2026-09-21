@@ -1,0 +1,13 @@
+NextUp site update
+==================
+This replaces two files on your GitHub site. Your privacy page and icons stay
+as they are.
+
+1. Open your nextup repository on github.com.
+2. Add file > Upload files.
+3. Drag index.html and sw.js from this folder into the box.
+4. Commit changes. GitHub replaces the old files with the same names.
+5. Wait a few minutes, open your site and press Ctrl + F5.
+
+What changed: the urgent/important panel now always fits the window, so its
+labels are no longer cut off on smaller screens.
