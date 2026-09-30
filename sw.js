@@ -1,6 +1,6 @@
 /* Prioritize My Lists service worker: makes the app start and work without a connection.
-   Raise CACHE (v8 -> v9 ...) whenever you upload changed files. */
-const CACHE = 'nextup-v8';
+   Raise CACHE (v10 -> v11 ...) whenever you upload changed files. */
+const CACHE = 'nextup-v10';
 const ASSETS = [
   './',
   './index.html',

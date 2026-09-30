@@ -423,6 +423,38 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
 }
 .toast :focus-visible { outline-color: currentColor; }
 
+/* ---------- Notice (backup reminders and restore offers) ---------- */
+.notice {
+  flex: none;
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 16px 8px;
+  padding: 9px 6px 9px 14px;
+  border: 1.5px solid var(--line); border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px; line-height: 1.3;
+}
+.notice > span { flex: 1; }
+.notice-btn {
+  appearance: none; flex: none;
+  height: 34px; padding: 0 12px;
+  border: 0; border-radius: 10px;
+  background: var(--ink); color: var(--bg);
+  font: 700 13.5px/1 var(--font);
+  cursor: pointer;
+}
+.notice-x {
+  appearance: none; flex: none;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: none; color: var(--ink-2);
+  cursor: pointer;
+}
+.notice-x svg { width: 14px; height: 14px; }
+.info #backup-box .small { margin-top: 10px; }
+.info #backup-box .quiet-btn { margin-top: 10px; }
+
 /* ---------- Sheet ---------- */
 .scrim {
   position: absolute; inset: 0; z-index: 20;
@@ -535,10 +567,11 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
   .phone {
     display: grid;
     grid-template-columns: 96px minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: "bar top" "bar views";
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "bar top" "bar notice" "bar views";
   }
   .top { grid-area: top; padding: 26px 32px 10px; }
+  .notice { grid-area: notice; margin: 0 32px 10px; max-width: 900px; }
   .view-title { font-size: 40px; }
   .summary { font-size: 15px; }
   .bar {
@@ -608,6 +641,8 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
       </div>
       <button type="button" class="icon-btn" data-action="info" aria-label="How the order is decided">?</button>
     </header>
+
+    <div class="notice" id="notice" hidden></div>
 
     <div class="views" id="views" data-tab="next">
       <section class="view is-active" id="view-next" aria-label="Ranked tasks"></section>
@@ -813,18 +848,14 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
     catch (e) { /* keep working in memory */ }
   }
   /* Called after every change the person makes. */
-  let askedToPersist = false;
   function save() {
     state.updatedAt = Math.max(Date.now(), state.updatedAt + 1);
     persistLocal();
-    if (!askedToPersist && navigator.storage && navigator.storage.persist) {
-      askedToPersist = true;
-      navigator.storage.persist().catch(() => {});
-    }
-    scheduleAccountWrite();
+    scheduleBackupWrite();
+    maybeNudgeBackup();
   }
-
-  function scheduleAccountWrite() { /* this build keeps everything on the PC */ }
+  /* Ask the browser to keep this app's storage out of automatic clean-ups. */
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
   /* ---------- Elements ---------- */
   const $ = (sel, root) => (root || document).querySelector(sel);
@@ -917,7 +948,8 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
         ? '<div class="empty"><h2>Nothing left to do</h2><p>Add a task and it gets ranked for you.</p>' +
           '<button type="button" class="pill-btn" data-action="add">Add a task</button></div>'
         : '<div class="empty"><h2>Add your first task</h2><p>Say how important it is and when it is due. The app works out the order.</p>' +
-          '<button type="button" class="pill-btn" data-action="add">Add a task</button></div>';
+          '<button type="button" class="pill-btn" data-action="add">Add a task</button>' +
+          '<p style="margin-top:14px"><button type="button" class="link-btn" data-action="import">Restore from a backup file</button></p></div>';
     } else {
       if (active.length) {
         heroId = active[0].t.id;
@@ -1079,7 +1111,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
   /* ---------- Sheet ---------- */
   let closeTimer = 0;
   function setInert(on) {
-    [$('#top'), $('#views'), $('#bar')].forEach((el) => { el.inert = on; });
+    [$('#top'), $('#notice'), $('#views'), $('#bar')].forEach((el) => { el.inert = on; });
   }
   function openSheet(kind, html, opener) {
     clearTimeout(closeTimer);
@@ -1185,13 +1217,17 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
         '<dt>Quick win, 5 points</dt><dd>Tasks of 15 minutes or less get a small push, so they win ties.</dd>' +
       '</dl>' +
       '<h3>Your data</h3>' +
-      '<p class="small">Tasks are stored on this device only. Nothing is sent anywhere. A backup file lets you move the list to another device or restore it later. Importing replaces the current list.</p>' +
+      '<p class="small">Tasks are kept in this app\'s own storage on this PC. Nothing is sent anywhere. Clearing the browser\'s browsing data, or a setting that clears it on close, deletes them. Automatic backup writes every change to a file you choose and brings the list back if the app ever starts empty.</p>' +
+      '<div id="backup-box"></div>' +
+      '<p class="small">A manual backup file can also be exported and imported, for example to move the list to another PC. Importing replaces the current list.</p>' +
       '<div class="pair"><button type="button" class="quiet-btn" data-action="export">Export a backup</button>' +
       '<button type="button" class="quiet-btn" data-action="import">Import a backup</button></div>' +
       '<div class="pair"><button type="button" class="quiet-btn" data-action="load-samples">Load sample tasks</button>' +
       '<button type="button" class="quiet-btn" data-action="remove-all">Remove all tasks</button></div>' +
-      '<p class="small about">Prioritize My Lists 1.0. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>',
+      '<p class="small about">Prioritize My Lists 1.1. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> &middot; ' +
+      '<a href="privacy.html#:~:text=Contact" target="_blank" rel="noopener">Contact the developer</a></p>',
       opener);
+    syncBackupStatus();
   }
 
   function showError(message) {
@@ -1286,6 +1322,182 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
     toast(message, () => { state.tasks = backup; save(); update(); });
   }
 
+  /* ---------- Notice bar ---------- */
+  const noticeEl = $('#notice');
+  function showNotice(text, buttonLabel, action) {
+    noticeEl.setAttribute('data-kind', action || '');
+    noticeEl.innerHTML = '<span>' + esc(text) + '</span>' +
+      (buttonLabel ? '<button type="button" class="notice-btn" data-action="' + esc(action) + '">' + esc(buttonLabel) + '</button>' : '') +
+      '<button type="button" class="notice-x" data-action="notice-close" aria-label="Dismiss">' + ICON.close + '</button>';
+    noticeEl.hidden = false;
+  }
+  function hideNotice() { noticeEl.hidden = true; noticeEl.innerHTML = ''; noticeEl.removeAttribute('data-kind'); }
+
+  /* ---------- Automatic backup to a file ----------
+     Tasks live in this app's browser storage, which the browser deletes together
+     with browsing data. With automatic backup on, every change is also written to
+     a file the person chose, and an empty list is restored from that file. */
+  const backupSupported = typeof window.showSaveFilePicker === 'function' && typeof indexedDB !== 'undefined';
+  const backup = { handle: null, status: 'off', lastSaved: 0, writing: false, queued: false, timer: 0, nudged: false };
+  const NUDGE_KEY = 'nextup.backupNudge';
+
+  function kvDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('pml-backup', 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore('kv'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function kvRun(mode, fn) {
+    return kvDb().then((db) => new Promise((resolve, reject) => {
+      const req = fn(db.transaction('kv', mode).objectStore('kv'));
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    }));
+  }
+  const kvGet = (key) => kvRun('readonly', (store) => store.get(key));
+  const kvSet = (key, value) => kvRun('readwrite', (store) => store.put(value, key));
+  const kvDelete = (key) => kvRun('readwrite', (store) => store.delete(key));
+
+  function backupBody() { return { app: 'Prioritize My Lists', v: 1, savedAt: new Date().toISOString(), tasks: state.tasks }; }
+  function backupFileName() { return backup.handle && backup.handle.name ? backup.handle.name : 'your backup file'; }
+  function backupStatusText() {
+    if (!backupSupported) return 'Automatic backup is not available in this browser. Use "Export a backup" below instead.';
+    switch (backup.status) {
+      case 'on': return 'Automatic backup is on: ' + backupFileName() +
+        (backup.lastSaved ? ', last saved ' + new Date(backup.lastSaved).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '') + '.';
+      case 'needs-permission': return 'Automatic backup is paused until you allow access to ' + backupFileName() + '.';
+      case 'error': return 'The backup file ' + backupFileName() + ' could not be written. It may have been moved or deleted. Choose a file again.';
+      default: return 'Automatic backup is off.';
+    }
+  }
+  function backupButtonsHtml() {
+    if (!backupSupported) return '';
+    if (backup.status === 'off') return '<button type="button" class="quiet-btn" data-action="backup-on">Turn on automatic backup</button>';
+    if (backup.status === 'needs-permission') return '<div class="pair"><button type="button" class="quiet-btn" data-action="backup-allow">Allow access</button>' +
+      '<button type="button" class="quiet-btn" data-action="backup-off">Turn off</button></div>';
+    return '<div class="pair"><button type="button" class="quiet-btn" data-action="backup-change">Choose another file</button>' +
+      '<button type="button" class="quiet-btn" data-action="backup-off">Turn off</button></div>';
+  }
+  function setBackupStatus(status) { backup.status = status; syncBackupStatus(); }
+  function syncBackupStatus() {
+    const box = $('#backup-box', sheet);
+    if (box) box.innerHTML = '<p class="small" id="backup-status" aria-live="polite">' + esc(backupStatusText()) + '</p>' + backupButtonsHtml();
+  }
+
+  /* Runs from a click, which the file picker requires. */
+  async function chooseBackupFile() {
+    if (!backupSupported) return;
+    let handle = null;
+    try {
+      handle = await window.showSaveFilePicker({
+        suggestedName: 'Prioritize My Lists backup.json',
+        types: [{ description: 'Backup file', accept: { 'application/json': ['.json'] } }]
+      });
+    } catch (e) { return; /* cancelled */ }
+    backup.handle = handle;
+    backup.lastSaved = 0;
+    try { await kvSet('handle', handle); } catch (e) { /* the file still works for this session */ }
+    try { window.localStorage.setItem(NUDGE_KEY, 'done'); } catch (e) { /* cosmetic only */ }
+    hideNotice();
+    setBackupStatus('on');
+    await writeBackup();
+    if (backup.status === 'on') toast('Automatic backup is on');
+  }
+  async function turnBackupOff() {
+    backup.handle = null;
+    backup.lastSaved = 0;
+    try { await kvDelete('handle'); } catch (e) { /* nothing to remove */ }
+    hideNotice();
+    setBackupStatus('off');
+    toast('Automatic backup is off. The file itself is kept.');
+  }
+  function scheduleBackupWrite(delay) {
+    if (!backup.handle) return;
+    clearTimeout(backup.timer);
+    backup.timer = setTimeout(writeBackup, delay === undefined ? 1200 : delay);
+  }
+  async function writeBackup() {
+    if (!backup.handle || backup.status === 'needs-permission') return;
+    if (backup.writing) { backup.queued = true; return; }
+    backup.writing = true;
+    try {
+      const writable = await backup.handle.createWritable();
+      await writable.write(JSON.stringify(backupBody(), null, 2));
+      await writable.close();
+      backup.lastSaved = Date.now();
+      setBackupStatus('on');
+    } catch (e) {
+      if (e && e.name === 'NotAllowedError') {
+        setBackupStatus('needs-permission');
+        showNotice('Backup paused: allow access to ' + backupFileName() + '.', 'Allow', 'backup-allow');
+      } else {
+        setBackupStatus('error');
+        showNotice('Your backup file could not be written. Choose a file again.', 'Choose file', 'backup-change');
+      }
+    } finally {
+      backup.writing = false;
+      if (backup.queued) { backup.queued = false; scheduleBackupWrite(300); }
+    }
+  }
+  async function readBackupFile() {
+    const file = await backup.handle.getFile();
+    const parsed = JSON.parse(await file.text());
+    const list = Array.isArray(parsed) ? parsed : (parsed && parsed.tasks);
+    if (!Array.isArray(list)) return null;
+    const seen = {};
+    return list.map(normalize).filter(Boolean).filter((t) => (seen[t.id] ? false : (seen[t.id] = true)));
+  }
+  /* If the app's own storage is empty but the backup file has tasks, bring them back. */
+  async function restoreFromBackupFile() {
+    if (state.tasks.length) return false;
+    let tasks = null;
+    try { tasks = await readBackupFile(); } catch (e) { tasks = null; }
+    if (!tasks || !tasks.length) return false;
+    state.tasks = tasks;
+    state.updatedAt = Date.now();
+    persistLocal();
+    update();
+    toast(tasks.length + (tasks.length === 1 ? ' task restored' : ' tasks restored') + ' from ' + backupFileName());
+    return true;
+  }
+  /* Runs from a click, which a permission request requires. */
+  async function allowBackupAccess() {
+    if (!backup.handle) return;
+    let perm = 'denied';
+    try { perm = await backup.handle.requestPermission({ mode: 'readwrite' }); } catch (e) { perm = 'denied'; }
+    if (perm !== 'granted') return;
+    hideNotice();
+    setBackupStatus('on');
+    const restored = await restoreFromBackupFile();
+    if (!restored) writeBackup();
+  }
+  async function initBackup() {
+    if (!backupSupported) return;
+    try { backup.handle = (await kvGet('handle')) || null; } catch (e) { backup.handle = null; }
+    if (!backup.handle) return;
+    let perm = 'prompt';
+    try { perm = await backup.handle.queryPermission({ mode: 'readwrite' }); } catch (e) { perm = 'prompt'; }
+    if (perm === 'granted') {
+      setBackupStatus('on');
+      await restoreFromBackupFile();
+    } else {
+      setBackupStatus('needs-permission');
+      showNotice(state.tasks.length ? 'Backup paused: allow access to ' + backupFileName() + '.'
+                                    : 'Your tasks can be restored from ' + backupFileName() + '.', 'Allow', 'backup-allow');
+    }
+  }
+  /* After the first change, suggest automatic backup once. */
+  function maybeNudgeBackup() {
+    if (!backupSupported || backup.handle || backup.nudged || !noticeEl.hidden) return;
+    let seen = null;
+    try { seen = window.localStorage.getItem(NUDGE_KEY); } catch (e) { seen = 'done'; }
+    if (seen) return;
+    backup.nudged = true;
+    showNotice('Keep your tasks safe if browser data is ever cleared: turn on automatic backup.', 'Turn on', 'backup-on');
+  }
+
   /* ---------- Backup ---------- */
   const importInput = $('#import-file');
   function exportBackup() {
@@ -1361,6 +1573,14 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
       case 'save': saveDraft(); break;
       case 'delete': deleteTask(id); break;
       case 'export': exportBackup(); break;
+      case 'backup-on': case 'backup-change': chooseBackupFile(); break;
+      case 'backup-off': turnBackupOff(); break;
+      case 'backup-allow': allowBackupAccess(); break;
+      case 'notice-close': {
+        if (noticeEl.getAttribute('data-kind') === 'backup-on') { try { window.localStorage.setItem(NUDGE_KEY, 'dismissed'); } catch (err) { /* cosmetic */ } }
+        hideNotice();
+        break;
+      }
       case 'import': importInput.value = ''; importInput.click(); break;
       case 'load-samples': replaceAll(sampleTasks(), 'Sample tasks loaded'); break;
       case 'remove-all': replaceAll([], 'All tasks removed'); break;
@@ -1417,6 +1637,7 @@ button { font-family: inherit; -webkit-user-select: none; user-select: none; }
 
   load();
   renderAll();
+  initBackup();
 
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
